@@ -1,4 +1,5 @@
-from .gtdb import GTDB_CLASSES, GTDB_ROOT, GTDBAnnotationTransform, GTDBDetection
+#from .gtdb import GTDB_CLASSES, GTDB_ROOT, GTDBAnnotationTransform, GTDBDetection
+from .gtdb_new import GTDB_CLASSES, GTDB_ROOT, GTDBAnnotationTransform, GTDBDetection
 from .config import *
 import torch
 import cv2
@@ -30,9 +31,10 @@ def detection_collate(batch):
 
 
 def base_transform(image, size, mean):
-    x = cv2.resize(image, (size, size)).astype(np.float32)
+    #print('Image size ', image.shape)
+    image = image.astype(np.float32)
+    x = cv2.resize(image, (size, size), interpolation=cv2.INTER_AREA).astype(np.float32)
     x -= mean
-    x = x.astype(np.float32)
     return x
 
 
