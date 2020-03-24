@@ -287,4 +287,7 @@ class GTDBDetection(data.Dataset):
 
     def read_single_image(self, name):
         img_path = osp.join(self.root, 'images', name + '.png')
-        return cv2.imread(img_path, cv2.IMREAD_COLOR)
+        image = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        if image is None:
+            print(img_path)
+        return image

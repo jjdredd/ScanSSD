@@ -30,7 +30,8 @@ def str2bool(v):
 def train(args):
 
     cfg = exp_cfg[args.cfg]
-    dataset = GTDBDetection(args, SSDAugmentation(cfg['min_dim'], mean=MEANS))
+    dataset = GTDBDetection(args, args.training_data, split='train',
+                            transform=SSDAugmentation(cfg['min_dim'], mean=MEANS))
 
     if args.visdom:
         import visdom

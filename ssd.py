@@ -35,7 +35,8 @@ class SSD(nn.Module):
         #self.priors = Variable(self.priorbox.forward(), volatile=True)
         with torch.no_grad():
             self.priors = self.priorbox.forward()
-            self.priors.to(gpu_id)
+            if args.cuda:
+                self.priors.to(gpu_id)
 
         self.size = size
 
