@@ -2,7 +2,7 @@
 
 python3 train.py 			--dataset GTDB \
 	--dataset_root ./made_datasets_v1/Train/ \
-	--batch_size 8 \
+	--batch_size 4 \
 	--num_workers 3 \
 	--exp_name IOU512_iter1 \
 	--model_type 512 \
