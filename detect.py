@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import os
+from collections import OrderedDict
 import cv2
 import numpy as np
 import argparse
@@ -41,9 +42,15 @@ class MathDetector():
 
     def __init__(self, weight_path, args):
         net = build_ssd(args, 'test', config.exp_cfg[args.cfg], 0, args.model_type, 2)
-        self._net = nn.DataParallel(net)
+        self._net = net # nn.DataParallel(net)
         weights = torch.load(weight_path, map_location = torch.device('cpu'))
-        self._net.load_state_dict(weights)
+
+        new_weights = OrderedDict()
+        for k, v in weights.items():
+            name = k[7:] # remove `module.`
+            new_weights[name] = v
+
+        self._net.load_state_dict(new_weights)
         self._net.eval()
 
     def Detect(self, thres, images):
@@ -61,7 +68,7 @@ class MathDetector():
 
             img_boxes = []
             img_scores = []
-            for i in range(detection.size(2)):
+            for j in range(detections.size(2)):
 
                 if ( detections[k, cls, j, 0] < thres ):
                     continue
@@ -91,4 +98,18 @@ def get_img():
 
 md = MathDetector('AMATH512_e1GTDB.pth', ArgStub())
 a = get_img()
-print(a.device)
+
+
+
+# https://discuss.pytorch.org/t/solved-keyerror-unexpected-key-module-encoder-embedding-weight-in-state-dict/1686/3
+
+# # original saved file with DataParallel
+# state_dict = torch.load('myfile.pth.tar')
+# # create new OrderedDict that does not contain `module.`
+# from collections import OrderedDict
+# new_state_dict = OrderedDict()
+# for k, v in state_dict.items():
+#     name = k[7:] # remove `module.`
+#     new_state_dict[name] = v
+# # load params
+# model.load_state_dict(new_state_dict)
