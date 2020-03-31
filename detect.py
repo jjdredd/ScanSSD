@@ -38,6 +38,14 @@ def draw_box(image, boxes):
     for b in boxes:
         cv2.rectangle(image, (b[0], b[1]), (b[2], b[3]), (0, 255, 0), 2)
 
+def _img_to_tensor(image):
+    rimg = cv2.resize(image, (512, 512),
+                      interpolation = cv2.INTER_AREA).astype(np.float32)
+    rimg -= np.array((246, 246, 246), dtype=np.float32)
+    rimg = rimg[:, :, (2, 1, 0)]
+    return torch.from_numpy(rimg).permute(2, 0, 1)
+
+
 class MathDetector():
 
     def __init__(self, weight_path, args):
@@ -53,7 +61,7 @@ class MathDetector():
         self._net.load_state_dict(new_weights)
         self._net.eval()
 
-    def Detect(self, thres, images):
+    def Detect (self, thres, images):
 
         cls = 1                 # math class
         boxes = []
@@ -83,18 +91,24 @@ class MathDetector():
 
         return boxes, scores
 
-    def ShowNetwork(self):
+    def ShowNetwork (self):
         print(self._net)
+
+    def DetectAny (self, thres, image):
+        if isinstance(image, list):
+            t_list = [_img_to_tensor(img) for img in image]
+            t = torch.stack(t_list, dim = 0)
+        else:
+            t = _img_to_tensor(image).unsqueeze(0)
+        # fix box coordinates to image pixel coordinates
+        return self.Detect(thres, t)
+
 
 
 def get_img():
     img = cv2.imread('/tmp/report_1/report-2.png', cv2.IMREAD_COLOR)
     cimg = img[0:3000, 1000:4000].astype(np.float32)
-    rimg = cv2.resize(cimg, (512, 512),
-                      interpolation = cv2.INTER_AREA).astype(np.float32)
-    rimg -= np.array((246, 246, 246), dtype=np.float32)
-    rimg = rimg[:, :, (2, 1, 0)]
-    return torch.from_numpy(rimg).permute(2, 0, 1).unsqueeze(0)
+    return cimg
 
 md = MathDetector('AMATH512_e1GTDB.pth', ArgStub())
 a = get_img()
