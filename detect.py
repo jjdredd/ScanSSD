@@ -34,17 +34,55 @@ class ArgStub():
         self.window = 1200
 
 
-def draw_box(image, boxes):
+
+def draw_box (image, boxes):
     for b in boxes:
         cv2.rectangle(image, (b[0], b[1]), (b[2], b[3]), (0, 255, 0), 2)
 
-def _img_to_tensor(image):
+
+
+def _img_to_tensor (image):
     rimg = cv2.resize(image, (512, 512),
                       interpolation = cv2.INTER_AREA).astype(np.float32)
     rimg -= np.array((246, 246, 246), dtype=np.float32)
     rimg = rimg[:, :, (2, 1, 0)]
     return torch.from_numpy(rimg).permute(2, 0, 1)
 
+
+
+def FixImgCoordinates (images, boxes):
+    new_boxes = []
+    if isinstance(images, list):
+            for i in range(len(images)):
+                print(images[i].shape)
+                bbs = []
+                for o_box in boxes[i] :
+                    b = [None] * 4
+                    b[0] = int(o_box[0] * images[i].shape[0])
+                    b[1] = int(o_box[1] * images[i].shape[1])
+                    b[2] = int(o_box[2] * images[i].shape[0])
+                    b[3] = int(o_box[3] * images[i].shape[1])
+                    bbs.append(b)
+
+                new_boxes.append(bbs)
+    else:
+        bbs = []
+        for o_box in boxes[0] :
+            b = [None] * 4
+            b[0] = int(o_box[0] * images.shape[0])
+            b[1] = int(o_box[1] * images.shape[1])
+            b[2] = int(o_box[2] * images.shape[0])
+            b[3] = int(o_box[3] * images.shape[1])
+            bbs.append(b)
+
+        new_boxes.append(bbs)
+
+    return new_boxes
+
+
+def DrawAllBoxes(images, boxes):
+    for i in range(len(images)):
+        draw_box(images[i], boxes[i])
 
 class MathDetector():
 
@@ -68,7 +106,6 @@ class MathDetector():
         scores = []
 
         y, debug_boxes, debug_scores = self._net(images)  # forward pass
-        print('passed')
 
         detections = y.data
 
@@ -101,18 +138,27 @@ class MathDetector():
         else:
             t = _img_to_tensor(image).unsqueeze(0)
         # fix box coordinates to image pixel coordinates
-        return self.Detect(thres, t)
-
+        boxes, scores = self.Detect(thres, t)
+        return FixImgCoordinates(image, boxes), scores
 
 
 def get_img():
-    img = cv2.imread('/tmp/report_1/report-2.png', cv2.IMREAD_COLOR)
+    img = cv2.imread('/tmp/report-2.png', cv2.IMREAD_COLOR)
     cimg = img[0:3000, 1000:4000].astype(np.float32)
     return cimg
 
 md = MathDetector('AMATH512_e1GTDB.pth', ArgStub())
-a = get_img()
+# a = get_img()
 
+# a = cv2.imread('/tmp/s-48.png', cv2.IMREAD_COLOR)
+exit(0)
+
+b, s = md.DetectAny(0.2, a)
+
+print(s)
+
+DrawAllBoxes([a, ], b)
+cv2.imwrite('/tmp/1.png', a)
 
 
 # https://discuss.pytorch.org/t/solved-keyerror-unexpected-key-module-encoder-embedding-weight-in-state-dict/1686/3
