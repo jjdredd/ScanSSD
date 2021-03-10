@@ -75,6 +75,12 @@ def FixImgCoordinates (images, boxes):
             b[3] = int(o_box[3] * images.shape[1])
             bbs.append(b)
 
+            # this could be
+            # b[0] = int(o_box[0] * images.shape[0]) ==> b[0] = int(o_box[0] * images.shape[1])
+            # b[1] = int(o_box[1] * images.shape[1]) ==> b[1] = int(o_box[1] * images.shape[0])
+            # b[2] = int(o_box[2] * images.shape[0]) ==> b[2] = int(o_box[2] * images.shape[1])
+            # b[3] = int(o_box[3] * images.shape[1]) ==> b[3] = int(o_box[3] * images.shape[0])
+
         new_boxes.append(bbs)
 
     return new_boxes
